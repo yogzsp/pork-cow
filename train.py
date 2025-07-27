@@ -1,11 +1,12 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
+import json
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
 EPOCHS = 30
-DATA_DIR = "./dataset"  # sesuaikan ke folder dataset-mu
+DATA_DIR = "./dataset"
 MODEL_NAME = "meat_vs_pork_transfer.keras"
 
 # === DATA GENERATOR ===
@@ -47,7 +48,7 @@ base_model = tf.keras.applications.MobileNetV2(
     include_top=False,
     weights='imagenet'
 )
-base_model.trainable = False  # freeze dulu
+base_model.trainable = False
 
 # === FULL MODEL ===
 model = tf.keras.Sequential([
@@ -81,4 +82,13 @@ history = model.fit(
     callbacks=callbacks
 )
 
+# === SAVE VALIDATION ACCURACY TO FILE ===
+final_accuracy = history.history['val_accuracy'][-1]
+with open("training_info.json", "w") as f:
+    json.dump({
+        "val_accuracy": float(final_accuracy),
+        "epochs": len(history.history['val_accuracy'])
+    }, f)
+
 print(f"✅ Model tersimpan: {MODEL_NAME}")
+print(f"📊 Akurasi Validasi Terakhir: {final_accuracy:.4f}")
