@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 import json
+import matplotlib.pyplot as plt
 
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
@@ -81,6 +82,38 @@ history = model.fit(
     validation_data=val_gen,
     callbacks=callbacks
 )
+
+# Ambil data akurasi dan loss dari history
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs_range = range(1, len(acc) + 1)
+
+# Plot Akurasi
+plt.figure(figsize=(8, 5))
+plt.plot(epochs_range, acc, label="Training Accuracy")
+plt.plot(epochs_range, val_acc, label="Validation Accuracy")
+plt.title("Training vs Validation Accuracy")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.grid(True)
+plt.savefig("accuracy_plot.png")
+plt.close()
+
+# Plot Loss
+plt.figure(figsize=(8, 5))
+plt.plot(epochs_range, loss, label="Training Loss")
+plt.plot(epochs_range, val_loss, label="Validation Loss")
+plt.title("Training vs Validation Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.legend()
+plt.grid(True)
+plt.savefig("loss_plot.png")
+plt.close()
+
 
 # === SAVE VALIDATION ACCURACY TO FILE ===
 final_accuracy = history.history['val_accuracy'][-1]
