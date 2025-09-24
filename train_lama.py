@@ -3,28 +3,12 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 import json
 import matplotlib.pyplot as plt
-import os
 
-# === KONFIGURASI ===
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
-EPOCHS = 95
+EPOCHS = 30
 DATA_DIR = "./dataset"
 MODEL_NAME = "meat_vs_pork_transfer.keras"
-
-# === PILIH OPTIMIZER ===
-OPTIMIZER_CHOICE = "adam"   # bisa diganti: "adam", "sgd", "rmsprop"
-
-if OPTIMIZER_CHOICE == "adam":
-    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
-elif OPTIMIZER_CHOICE == "sgd":
-    optimizer = tf.keras.optimizers.SGD(learning_rate=1e-3, momentum=0.9)
-elif OPTIMIZER_CHOICE == "rmsprop":
-    optimizer = tf.keras.optimizers.RMSprop(learning_rate=1e-3)
-else:
-    raise ValueError("Optimizer tidak dikenal, pilih: adam / sgd / rmsprop")
-
-print(f"✅ Optimizer yang digunakan: {OPTIMIZER_CHOICE.upper()}")
 
 # === DATA GENERATOR ===
 train_datagen = ImageDataGenerator(
@@ -57,11 +41,6 @@ val_gen = train_datagen.flow_from_directory(
     shuffle=False
 )
 
-# === INFO DATASET ===
-total_images = sum([len(files) for _, _, files in os.walk(DATA_DIR)])
-print(f"Jumlah data asli (sebelum augmentasi): {total_images}")
-print(f"Jumlah sampel training per epoch: {train_gen.samples}")
-print(f"Jumlah sampel validasi per epoch: {val_gen.samples}")
 print(f"Classes: {train_gen.class_indices}")
 
 # === BASE MODEL ===
@@ -82,7 +61,7 @@ model = tf.keras.Sequential([
 ])
 
 model.compile(
-    optimizer=optimizer,
+    optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
     loss='categorical_crossentropy',
     metrics=['accuracy']
 )
@@ -91,7 +70,7 @@ model.summary()
 
 # === CALLBACKS ===
 callbacks = [
-    EarlyStopping(patience=8, restore_best_weights=True),
+    EarlyStopping(patience=5, restore_best_weights=True),
     ReduceLROnPlateau(patience=3, factor=0.2, min_lr=1e-6),
     ModelCheckpoint(MODEL_NAME, save_best_only=True)
 ]
@@ -135,16 +114,13 @@ plt.grid(True)
 plt.savefig("loss_plot.png")
 plt.close()
 
-# === SAVE TRAINING INFO ===
+
+# === SAVE VALIDATION ACCURACY TO FILE ===
 final_accuracy = history.history['val_accuracy'][-1]
 with open("training_info.json", "w") as f:
     json.dump({
         "val_accuracy": float(final_accuracy),
-        "epochs": len(history.history['val_accuracy']),
-        "optimizer": OPTIMIZER_CHOICE,
-        "original_data": total_images,
-        "train_samples_per_epoch": train_gen.samples,
-        "val_samples_per_epoch": val_gen.samples
+        "epochs": len(history.history['val_accuracy'])
     }, f)
 
 print(f"✅ Model tersimpan: {MODEL_NAME}")

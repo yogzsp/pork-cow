@@ -1,1 +1,1 @@
-{"val_accuracy": 1.0, "epochs": 15}
+{"val_accuracy": 1.0, "epochs": 22, "optimizer": "adam", "original_data": 244, "train_samples_per_epoch": 196, "val_samples_per_epoch": 48}

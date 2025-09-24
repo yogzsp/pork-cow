@@ -4,3 +4,5 @@ pillow
 numpy
 scikit-learn
 python-multipart
+flask
+flask-cors
