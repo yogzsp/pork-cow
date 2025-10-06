@@ -1,8 +1,11 @@
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-import json
+from sklearn.metrics import confusion_matrix, classification_report
 import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import json
 import os
 
 # === KONFIGURASI ===
@@ -104,14 +107,13 @@ history = model.fit(
     callbacks=callbacks
 )
 
-# Ambil data akurasi dan loss dari history
+# === GRAFIK TRAINING ===
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 epochs_range = range(1, len(acc) + 1)
 
-# Plot Akurasi
 plt.figure(figsize=(8, 5))
 plt.plot(epochs_range, acc, label="Training Accuracy")
 plt.plot(epochs_range, val_acc, label="Validation Accuracy")
@@ -123,7 +125,6 @@ plt.grid(True)
 plt.savefig("accuracy_plot.png")
 plt.close()
 
-# Plot Loss
 plt.figure(figsize=(8, 5))
 plt.plot(epochs_range, loss, label="Training Loss")
 plt.plot(epochs_range, val_loss, label="Validation Loss")
@@ -135,6 +136,39 @@ plt.grid(True)
 plt.savefig("loss_plot.png")
 plt.close()
 
+# === EVALUASI MODEL (Confusion Matrix, Recall, F1, dll) ===
+print("\n🔍 Evaluasi model pada data validasi...")
+
+val_gen.reset()
+pred_probs = model.predict(val_gen)
+pred_labels = np.argmax(pred_probs, axis=1)
+true_labels = val_gen.classes
+class_labels = list(val_gen.class_indices.keys())
+
+# Confusion Matrix
+cm = confusion_matrix(true_labels, pred_labels)
+plt.figure(figsize=(6, 5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=class_labels,
+            yticklabels=class_labels)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.savefig("confusion_matrix.png")
+plt.close()
+
+# Classification Report (Precision, Recall, F1)
+report = classification_report(
+    true_labels,
+    pred_labels,
+    target_names=class_labels,
+    output_dict=True
+)
+
+# Simpan evaluasi ke JSON
+with open("evaluation_metrics.json", "w") as f:
+    json.dump(report, f, indent=4)
+
 # === SAVE TRAINING INFO ===
 final_accuracy = history.history['val_accuracy'][-1]
 with open("training_info.json", "w") as f:
@@ -145,7 +179,9 @@ with open("training_info.json", "w") as f:
         "original_data": total_images,
         "train_samples_per_epoch": train_gen.samples,
         "val_samples_per_epoch": val_gen.samples
-    }, f)
+    }, f, indent=4)
 
-print(f"✅ Model tersimpan: {MODEL_NAME}")
+print(f"\n✅ Model tersimpan: {MODEL_NAME}")
 print(f"📊 Akurasi Validasi Terakhir: {final_accuracy:.4f}")
+print("📈 Confusion Matrix disimpan ke: confusion_matrix.png")
+print("📄 Metrik evaluasi disimpan ke: evaluation_metrics.json")

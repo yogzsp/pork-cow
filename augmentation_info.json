@@ -1,0 +1,6 @@
+{
+    "original_data": 244,
+    "augmented_data": 1423,
+    "aug_per_image": 5,
+    "output_dir": "./dataset"
+}

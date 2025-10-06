@@ -1,0 +1,8 @@
+{
+    "val_accuracy": 0.9964664578437805,
+    "epochs": 23,
+    "optimizer": "adam",
+    "original_data": 1423,
+    "train_samples_per_epoch": 1140,
+    "val_samples_per_epoch": 283
+}

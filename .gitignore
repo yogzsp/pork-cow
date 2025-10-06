@@ -1,0 +1,4 @@
+./dataset/*
+./*.png
+./*.json
+./*.keras
