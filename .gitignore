@@ -1,4 +1,7 @@
-./dataset/*
-./*.png
-./*.json
-./*.keras
+# Mengabaikan semua file di dalam folder dataset
+dataset/*
+
+# Mengabaikan semua file .png, .json, dan .keras di seluruh proyek
+*.png
+*.json
+*.keras
